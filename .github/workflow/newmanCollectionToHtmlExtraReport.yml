@@ -1,0 +1,18 @@
+name: Newman Run
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  newman:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: matt-ball/newman-action@master
+        with:
+          apiKey: ${{ secrets.POSTMAN_API_KEY }}  # Referencing the secret
+          collection: louish2 Final.postman_collection.json
+          environment: 5922408-228c7edd-fc15-4f68-9665-a35d7df6945b

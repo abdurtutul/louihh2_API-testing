@@ -1,0 +1,6626 @@
+<<<<<<< HEAD
+{
+	"info": {
+		"_postman_id": "8952cd32-dc77-49fa-b862-464a9d7f7f71",
+		"name": "louish2 Final",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22742638",
+		"_collection_link": "https://lunar-firefly-999126.postman.co/workspace/louish2-~4e12316f-3909-4c99-af3d-19fa88ab55a6/collection/22742638-8952cd32-dc77-49fa-b862-464a9d7f7f71?action=share&source=collection_link&creator=22742638"
+	},
+	"item": [
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// ✅ Basic response tests\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message asks to check email\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Check your email to verify your account\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Extract and save user data if present\r",
+									"if (res.data && res.data.user) {\r",
+									"    const user = res.data.user;\r",
+									"\r",
+									"    // Save email\r",
+									"    if (user.email) {\r",
+									"        pm.collectionVariables.set(\"email\", user.email);\r",
+									"        console.log(\"✅ Email saved:\", user.email);\r",
+									"\r",
+									"        pm.test(\"Email is present\", () => {\r",
+									"            pm.expect(user.email).to.be.a(\"string\").and.not.empty;\r",
+									"        });\r",
+									"    }\r",
+									"\r",
+									"\r",
+									"    // Save user ID\r",
+									"    if (user.id) {\r",
+									"        pm.collectionVariables.set(\"id\", user.id);\r",
+									"        console.log(\"✅ Email saved:\", user.id);\r",
+									"\r",
+									"        pm.test(\"ID is present\", () => {\r",
+									"        pm.expect(user.id).to.be.a(\"number\");\r",
+									"});\r",
+									"    }\r",
+									"\r",
+									"    // Save OTP\r",
+									"    if (user.otp) {\r",
+									"        pm.collectionVariables.set(\"otp\", user.otp);\r",
+									"        console.log(\"✅ OTP saved:\", user.otp);\r",
+									"\r",
+									"        pm.test(\"OTP is present\", () => {\r",
+									"            pm.expect(user.otp).to.be.a(\"number\");\r",
+									"        });\r",
+									"    }\r",
+									"\r",
+									"    \r",
+									"\r",
+									"} else {\r",
+									"    pm.test(\"User object is present\", () => {\r",
+									"        pm.expect.fail(\"User data is missing in response.\");\r",
+									"    });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let randomnum = String(Math.floor(Math.random() * 100000000)).padStart(8,0);\r",
+									"console.log('random number',randomnum)\r",
+									"\r",
+									"pm.collectionVariables.set(\"signup_password\", randomnum)\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "{{$randomEmail}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{signup_password}}",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "{{$randomFullName}}",
+									"type": "text"
+								},
+								{
+									"key": "password_confirmation",
+									"value": "{{signup_password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check otp",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"const statusCode = pm.response.code;\r",
+									"\r",
+									"// ✅ Pass if status is 200 or expected 400 error\r",
+									"pm.test(\"Status code is 200 or Email already verified (400)\", () => {\r",
+									"    pm.expect([200, 400]).to.include(statusCode);\r",
+									"});\r",
+									"\r",
+									"// ✅ Handle successful verification (200)\r",
+									"if (statusCode === 200 && res.success) {\r",
+									"    pm.test(\"Response success is true\", () => {\r",
+									"        pm.expect(res.success).to.be.true;\r",
+									"    });\r",
+									"\r",
+									"    pm.test(\"Message confirms email verification\", () => {\r",
+									"        pm.expect(res.message).to.include(\"Email verified successfully\");\r",
+									"    });\r",
+									"\r",
+									"    // ✅ Save access_token\r",
+									"    if (\r",
+									"        res.data &&\r",
+									"        res.data.token &&\r",
+									"        res.data.token.original &&\r",
+									"        res.data.token.original.access_token\r",
+									"    ) {\r",
+									"        const accessToken = res.data.token.original.access_token;\r",
+									"        pm.collectionVariables.set(\"access_token\", accessToken);\r",
+									"        console.log(\"✅ Access token saved:\", accessToken);\r",
+									"\r",
+									"        pm.test(\"Access token exists and is saved\", () => {\r",
+									"            pm.expect(accessToken).to.be.a(\"string\").that.is.not.empty;\r",
+									"        });\r",
+									"    } else {\r",
+									"        pm.test(\"Access token present\", () => {\r",
+									"            pm.expect.fail(\"Access token not found in successful response\");\r",
+									"        });\r",
+									"    }\r",
+									"\r",
+									"// ✅ Handle known case: already verified (400)\r",
+									"} else if (statusCode === 400 && res.message === \"Email already verified.\") {\r",
+									"    pm.test(\"Email already verified message is shown\", () => {\r",
+									"        pm.expect(res.message).to.include(\"Email already verified.\");\r",
+									"    });\r",
+									"    console.warn(\"⚠️ Email already verified. Skipping token save.\");\r",
+									"    \r",
+									"// ❌ Any other unexpected errors\r",
+									"} else {\r",
+									"    pm.test(\"Unexpected error\", () => {\r",
+									"        pm.expect.fail(`Unexpected response: ${res.message}`);\r",
+									"    });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "{{email}}",
+									"type": "text"
+								},
+								{
+									"key": "otp",
+									"value": "{{otp}}",
+									"type": "text"
+								},
+								{
+									"key": "action",
+									"value": "email_verification",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/verify-otp-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"verify-otp-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// ✅ Test: status code and success\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Login success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message confirms login\", () => {\r",
+									"    pm.expect(res.message).to.include(\"User logged in successfully\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Save access_token to collection variable\r",
+									"if (\r",
+									"    res.data &&\r",
+									"    res.data.token &&\r",
+									"    res.data.token.original &&\r",
+									"    res.data.token.original.access_token\r",
+									") {\r",
+									"    const accessToken = res.data.token.original.access_token;\r",
+									"    pm.collectionVariables.set(\"access_token\", accessToken);\r",
+									"    console.log(\"✅ Access token saved:\", accessToken);\r",
+									"\r",
+									"    pm.test(\"Access token is a non-empty string\", () => {\r",
+									"        pm.expect(accessToken).to.be.a(\"string\").that.is.not.empty;\r",
+									"    });\r",
+									"} else {\r",
+									"    pm.test(\"Access token exists\", () => {\r",
+									"        pm.expect.fail(\"❌ Access token not found in response.\");\r",
+									"    });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "{{email}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{signup_password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Post",
+			"item": [
+				{
+					"name": "store",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// ✅ Basic status and success tests\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success flag is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response message is correct\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Tool created successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data object exists\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Use different variable name to avoid redeclaration\r",
+									"const toolData = res.data;\r",
+									"\r",
+									"// Save tool id for future requests\r",
+									"pm.collectionVariables.set(\"tool_id\", toolData.id);\r",
+									"console.log(\"✅ Tool ID saved:\", toolData.id);\r",
+									"\r",
+									"// Save start_date mapped by tool id\r",
+									"const startDate = toolData.availability?.start_date || null;\r",
+									"\r",
+									"if (startDate) {\r",
+									"    let startDateMap = {};\r",
+									"    const existingMapStr = pm.collectionVariables.get(\"start_date_map\");\r",
+									"\r",
+									"    if (existingMapStr) {\r",
+									"        try {\r",
+									"            startDateMap = JSON.parse(existingMapStr);\r",
+									"        } catch (e) {\r",
+									"            console.warn(\"Could not parse existing start_date_map, resetting.\");\r",
+									"        }\r",
+									"    }\r",
+									"\r",
+									"    startDateMap[toolData.id] = startDate;\r",
+									"    pm.collectionVariables.set(\"start_date_map\", JSON.stringify(startDateMap));\r",
+									"\r",
+									"    console.log(`✅ Saved start_date for tool ${toolData.id}: ${startDate}`);\r",
+									"} else {\r",
+									"    console.warn(\"⚠️ No start_date found in availability\");\r",
+									"}\r",
+									"\r",
+									"// ➡️ Set next request\r",
+									"postman.setNextRequest(\"store_2\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Array of tool names\r",
+									"const tools = [\"Knife\", \"Hammer\", \"Screwdriver\", \"Wrench\", \"Pliers\"];\r",
+									"\r",
+									"// Select a random tool name\r",
+									"const toolName = tools[Math.floor(Math.random() * tools.length)];\r",
+									"pm.variables.set(\"name\", toolName);\r",
+									"\r",
+									"// Set dynamic description\r",
+									"pm.variables.set(\"description\", pm.variables.replaceIn(\"{{$randomWords}}\"));\r",
+									"\r",
+									"// Random Latitude & Longitude\r",
+									"pm.variables.set(\"latitude\", (Math.random() * 180 - 90).toFixed(6));\r",
+									"pm.variables.set(\"longitude\", (Math.random() * 360 - 180).toFixed(6));\r",
+									"\r",
+									"// Random Price and Quantity\r",
+									"pm.variables.set(\"price\", Math.floor(Math.random() * 150) + 50);\r",
+									"pm.variables.set(\"quantity\", Math.floor(Math.random() * 20) + 1);\r",
+									"\r",
+									"// Random Start Date (within next 30 days)\r",
+									"let startDate = new Date();\r",
+									"startDate.setDate(startDate.getDate() + Math.floor(Math.random() * 30));\r",
+									"pm.variables.set(\"start_date\", startDate.toISOString().split('T')[0]);\r",
+									"\r",
+									"// Function to generate random time (HH:mm)\r",
+									"function randomTime() {\r",
+									"    let h = Math.floor(Math.random() * 24);\r",
+									"    let m = Math.floor(Math.random() * 60);\r",
+									"    return (\"0\" + h).slice(-2) + \":\" + (\"0\" + m).slice(-2);\r",
+									"}\r",
+									"\r",
+									"// Start and End Times\r",
+									"let startTime = randomTime();\r",
+									"pm.variables.set(\"start_time\", startTime);\r",
+									"\r",
+									"let [sh, sm] = startTime.split(\":\").map(Number);\r",
+									"let eh = (sh + Math.floor(Math.random() * 7) + 6) % 24;\r",
+									"let em = sm;\r",
+									"pm.variables.set(\"end_time\", (\"0\" + eh).slice(-2) + \":\" + (\"0\" + em).slice(-2));\r",
+									"\r",
+									"// Random Location\r",
+									"pm.variables.set(\"location\", pm.variables.replaceIn(\"{{$randomCity}}, {{$randomCountry}}\"));\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category_id",
+									"value": "3",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "{{name}}",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "{{description}}",
+									"type": "text"
+								},
+								{
+									"key": "latitude",
+									"value": "{{latitude}}",
+									"type": "text"
+								},
+								{
+									"key": "longitude",
+									"value": "{{longitude}}",
+									"type": "text"
+								},
+								{
+									"key": "images[]",
+									"type": "file",
+									"src": "/C:/Users/USER/Downloads/download (1).jpg"
+								},
+								{
+									"key": "price",
+									"value": "{{price}}",
+									"type": "text"
+								},
+								{
+									"key": "start_date",
+									"value": "{{start_date}}",
+									"type": "text"
+								},
+								{
+									"key": "start_time",
+									"value": "{{start_time}}",
+									"type": "text"
+								},
+								{
+									"key": "end_time",
+									"value": "{{end_time}}",
+									"type": "text"
+								},
+								{
+									"key": "quantity",
+									"value": "{{quantity}}",
+									"type": "text"
+								},
+								{
+									"key": "location",
+									"value": "{{location}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/tools/store",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tools",
+								"store"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "store_2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// Basic status and success tests\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success flag is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response message is correct\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Tool created successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data object exists\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"const toolData = res.data;\r",
+									"\r",
+									"// Save tool id for future requests\r",
+									"pm.collectionVariables.set(\"tool_id\", toolData.id);\r",
+									"console.log(\"✅ Tool ID saved:\", toolData.id);\r",
+									"\r",
+									"// Save start_date mapped by tool id\r",
+									"const startDate = toolData.availability?.start_date || null;\r",
+									"\r",
+									"if (startDate) {\r",
+									"    let startDateMap = {};\r",
+									"    const existingMapStr = pm.collectionVariables.get(\"start_date_map\");\r",
+									"\r",
+									"    if (existingMapStr) {\r",
+									"        try {\r",
+									"            startDateMap = JSON.parse(existingMapStr);\r",
+									"        } catch (e) {\r",
+									"            console.warn(\"Could not parse existing start_date_map, resetting.\");\r",
+									"        }\r",
+									"    }\r",
+									"\r",
+									"    startDateMap[toolData.id] = startDate;\r",
+									"    pm.collectionVariables.set(\"start_date_map\", JSON.stringify(startDateMap));\r",
+									"\r",
+									"    console.log(`✅ Saved start_date for tool ${toolData.id}: ${startDate}`);\r",
+									"} else {\r",
+									"    console.warn(\"⚠️ No start_date found in availability\");\r",
+									"}\r",
+									"\r",
+									"postman.setNextRequest(\"get\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Array of tool names\r",
+									"const tools = [\"Knife\", \"Hammer\", \"Screwdriver\", \"Wrench\", \"Pliers\"];\r",
+									"\r",
+									"// Select a random tool name\r",
+									"const toolName = tools[Math.floor(Math.random() * tools.length)];\r",
+									"pm.variables.set(\"name\", toolName);\r",
+									"\r",
+									"// Set dynamic description\r",
+									"pm.variables.set(\"description\", pm.variables.replaceIn(\"{{$randomWords}}\"));\r",
+									"\r",
+									"// Random Latitude & Longitude\r",
+									"pm.variables.set(\"latitude\", (Math.random() * 180 - 90).toFixed(6));\r",
+									"pm.variables.set(\"longitude\", (Math.random() * 360 - 180).toFixed(6));\r",
+									"\r",
+									"// Random Price and Quantity\r",
+									"pm.variables.set(\"price\", Math.floor(Math.random() * 150) + 50);\r",
+									"pm.variables.set(\"quantity\", Math.floor(Math.random() * 20) + 1);\r",
+									"\r",
+									"// Random Start Date (within next 30 days)\r",
+									"let startDate = new Date();\r",
+									"startDate.setDate(startDate.getDate() + Math.floor(Math.random() * 30));\r",
+									"pm.variables.set(\"start_date\", startDate.toISOString().split('T')[0]);\r",
+									"\r",
+									"// Function to generate random time (HH:mm)\r",
+									"function randomTime() {\r",
+									"    let h = Math.floor(Math.random() * 24);\r",
+									"    let m = Math.floor(Math.random() * 60);\r",
+									"    return (\"0\" + h).slice(-2) + \":\" + (\"0\" + m).slice(-2);\r",
+									"}\r",
+									"\r",
+									"// Start and End Times\r",
+									"let startTime = randomTime();\r",
+									"pm.variables.set(\"start_time\", startTime);\r",
+									"\r",
+									"let [sh, sm] = startTime.split(\":\").map(Number);\r",
+									"let eh = (sh + Math.floor(Math.random() * 7) + 6) % 24;\r",
+									"let em = sm;\r",
+									"pm.variables.set(\"end_time\", (\"0\" + eh).slice(-2) + \":\" + (\"0\" + em).slice(-2));\r",
+									"\r",
+									"// Random Location\r",
+									"pm.variables.set(\"location\", pm.variables.replaceIn(\"{{$randomCity}}, {{$randomCountry}}\"));\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category_id",
+									"value": "3",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "{{name}}",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "{{description}}",
+									"type": "text"
+								},
+								{
+									"key": "latitude",
+									"value": "{{latitude}}",
+									"type": "text"
+								},
+								{
+									"key": "longitude",
+									"value": "{{longitude}}",
+									"type": "text"
+								},
+								{
+									"key": "images[]",
+									"type": "file",
+									"src": "/C:/Users/USER/Downloads/cousine.jpg"
+								},
+								{
+									"key": "price",
+									"value": "{{price}}",
+									"type": "text"
+								},
+								{
+									"key": "start_date",
+									"value": "{{start_date}}",
+									"type": "text"
+								},
+								{
+									"key": "start_time",
+									"value": "{{start_time}}",
+									"type": "text"
+								},
+								{
+									"key": "end_time",
+									"value": "{{end_time}}",
+									"type": "text"
+								},
+								{
+									"key": "quantity",
+									"value": "{{quantity}}",
+									"type": "text"
+								},
+								{
+									"key": "location",
+									"value": "{{location}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/tools/store",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tools",
+								"store"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the response\r",
+									"let res = pm.response.json();\r",
+									"\r",
+									"// Check if success is true and data array exists\r",
+									"if (res.success && Array.isArray(res.data.data)) {\r",
+									"    // Extract all IDs from the response\r",
+									"    let ids = res.data.data.map(item => item.id);\r",
+									"    \r",
+									"    // Save the array as a collection variable\r",
+									"    pm.collectionVariables.set(\"tool_ids\", JSON.stringify(ids));\r",
+									"    \r",
+									"    // Pick a random ID and save it\r",
+									"    let randomId = ids[Math.floor(Math.random() * ids.length)];\r",
+									"    pm.collectionVariables.set(\"random_tool_id\", randomId);\r",
+									"\r",
+									"    console.log(\"Tool IDs:\", ids);\r",
+									"    console.log(\"Random ID selected:\", randomId);\r",
+									"    \r",
+									"    pm.test(\"✅ Tool IDs extracted and random ID selected\", function () {\r",
+									"        pm.expect(ids.length).to.be.greaterThan(0);\r",
+									"    });\r",
+									"} else {\r",
+									"    pm.test(\"❌ Failed to extract tool IDs\", function () {\r",
+									"        pm.expect.fail(\"Response format invalid or data missing\");\r",
+									"    });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tools/get",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tools",
+								"get"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Array of tool names\r",
+									"const tools = [\"Knife\", \"Hammer\", \"Screwdriver\", \"Wrench\", \"Pliers\"];\r",
+									"\r",
+									"// Select a random tool name\r",
+									"const toolName = tools[Math.floor(Math.random() * tools.length)];\r",
+									"pm.variables.set(\"name\", toolName);\r",
+									"\r",
+									"// Set dynamic description\r",
+									"pm.variables.set(\"description\", pm.variables.replaceIn(\"{{$randomWords}}\"));\r",
+									"\r",
+									"// Random Latitude & Longitude\r",
+									"pm.variables.set(\"latitude\", (Math.random() * 180 - 90).toFixed(6));\r",
+									"pm.variables.set(\"longitude\", (Math.random() * 360 - 180).toFixed(6));\r",
+									"\r",
+									"// Random Price and Quantity\r",
+									"pm.variables.set(\"price\", Math.floor(Math.random() * 150) + 50);\r",
+									"pm.variables.set(\"quantity\", Math.floor(Math.random() * 20) + 1);\r",
+									"\r",
+									"// Random Start Date (within next 30 days)\r",
+									"let startDate = new Date();\r",
+									"startDate.setDate(startDate.getDate() + Math.floor(Math.random() * 30));\r",
+									"pm.variables.set(\"start_date\", startDate.toISOString().split('T')[0]);\r",
+									"\r",
+									"// Function to generate random time (HH:mm)\r",
+									"function randomTime() {\r",
+									"    let h = Math.floor(Math.random() * 24);\r",
+									"    let m = Math.floor(Math.random() * 60);\r",
+									"    return (\"0\" + h).slice(-2) + \":\" + (\"0\" + m).slice(-2);\r",
+									"}\r",
+									"\r",
+									"// Start and End Times\r",
+									"let startTime = randomTime();\r",
+									"pm.variables.set(\"start_time\", startTime);\r",
+									"\r",
+									"let [sh, sm] = startTime.split(\":\").map(Number);\r",
+									"let eh = (sh + Math.floor(Math.random() * 7) + 6) % 24;\r",
+									"let em = sm;\r",
+									"pm.variables.set(\"end_time\", (\"0\" + eh).slice(-2) + \":\" + (\"0\" + em).slice(-2));\r",
+									"\r",
+									"// Random Location\r",
+									"pm.variables.set(\"location\", pm.variables.replaceIn(\"{{$randomCity}}, {{$randomCountry}}\"));\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the response body\r",
+									"let res = pm.response.json();\r",
+									"\r",
+									"// ✅ Basic status checks\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response has success flag\", function () {\r",
+									"    pm.expect(res.success).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is correct\", function () {\r",
+									"    pm.expect(res.message).to.eql(\"Tool updated successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data object is present\", function () {\r",
+									"    pm.expect(res).to.have.property(\"data\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Check key data fields\r",
+									"pm.test(\"Tool ID is a number\", function () {\r",
+									"    pm.expect(res.data.id).to.be.a(\"number\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Tool name is present\", function () {\r",
+									"    pm.expect(res.data.name).to.be.a(\"string\").and.not.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Availability section is present\", function () {\r",
+									"    pm.expect(res.data).to.have.property(\"availability\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Attachments array has at least one file\", function () {\r",
+									"    pm.expect(res.data.attachments.length).to.be.greaterThan(0);\r",
+									"});\r",
+									"\r",
+									"// ✅ Save values to collection/environment variables\r",
+									"pm.collectionVariables.set(\"tool_id\", res.data.id);\r",
+									"pm.collectionVariables.set(\"availability_id\", res.data.availability.id);\r",
+									"pm.collectionVariables.set(\"tool_name\", res.data.name);\r",
+									"pm.collectionVariables.set(\"tool_slug\", res.data.slug);\r",
+									"pm.collectionVariables.set(\"tool_file_url\", res.data.attachments[0].file_url);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category_id",
+									"value": "3",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "{{name}}",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "{{description}}",
+									"type": "text"
+								},
+								{
+									"key": "latitude",
+									"value": "{{latitude}}",
+									"type": "text"
+								},
+								{
+									"key": "longitude",
+									"value": "{{longitude}}",
+									"type": "text"
+								},
+								{
+									"key": "price",
+									"value": "{{price}}",
+									"type": "text"
+								},
+								{
+									"key": "start_date",
+									"value": "{{start_date}}",
+									"type": "text"
+								},
+								{
+									"key": "start_time",
+									"value": "{{start_time}}",
+									"type": "text"
+								},
+								{
+									"key": "end_time",
+									"value": "{{end_time}}",
+									"type": "text"
+								},
+								{
+									"key": "quantity",
+									"value": "{{quantity}}",
+									"type": "text"
+								},
+								{
+									"key": "location",
+									"value": "{{location}}",
+									"type": "text"
+								},
+								{
+									"key": "images[]",
+									"type": "file",
+									"src": "/C:/Users/USER/Downloads/watch.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/tools/update/{{random_tool_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tools",
+								"update",
+								"{{random_tool_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "edit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// Basic status and success tests\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message confirms data fetched\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Data fetched successfully\");\r",
+									"});\r",
+									"\r",
+									"// Check data object\r",
+									"pm.test(\"Data object exists\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"const responseData = res.data;\r",
+									"\r",
+									"// Validate tool object\r",
+									"pm.test(\"Tool object exists\", () => {\r",
+									"    pm.expect(responseData.tool).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"const tool = responseData.tool;\r",
+									"\r",
+									"pm.test(\"Tool ID is present and a number\", () => {\r",
+									"    pm.expect(tool.id).to.be.a(\"number\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Tool name is present and a string\", () => {\r",
+									"    pm.expect(tool.name).to.be.a(\"string\").and.not.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Tool location is present\", () => {\r",
+									"    pm.expect(tool.location).to.be.a(\"string\").and.not.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Tool price is present and a number\", () => {\r",
+									"    pm.expect(tool.price).to.be.a(\"number\");\r",
+									"});\r",
+									"\r",
+									"// Validate available object\r",
+									"pm.test(\"Available object exists\", () => {\r",
+									"    pm.expect(tool.available).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"const available = tool.available;\r",
+									"\r",
+									"pm.test(\"Available quantity is a number\", () => {\r",
+									"    pm.expect(available.quantity).to.be.a(\"number\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Available start_date is a valid date string\", () => {\r",
+									"    pm.expect(new Date(available.start_date).toString()).to.not.equal(\"Invalid Date\");\r",
+									"});\r",
+									"\r",
+									"// Save tool id as collection variable\r",
+									"pm.collectionVariables.set(\"tool_id\", tool.id);\r",
+									"console.log(\"✅ tool_id saved:\", tool.id);\r",
+									"\r",
+									"// Save first image URL as collection variable\r",
+									"if (responseData.first_image) {\r",
+									"    pm.collectionVariables.set(\"first_image_url\", responseData.first_image);\r",
+									"    console.log(\"✅ first_image_url saved:\", responseData.first_image);\r",
+									"} else {\r",
+									"    pm.test(\"First image URL present\", () => {\r",
+									"        pm.expect.fail(\"first_image URL is missing\");\r",
+									"    });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category_id",
+									"value": "2",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "Ghori",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+									"type": "text"
+								},
+								{
+									"key": "latitude",
+									"value": "40.7128",
+									"type": "text"
+								},
+								{
+									"key": "longitude",
+									"value": "-74.0060",
+									"type": "text"
+								},
+								{
+									"key": "location",
+									"value": "New York, NY",
+									"type": "text"
+								},
+								{
+									"key": "start_date",
+									"value": "2025-06-10",
+									"type": "text"
+								},
+								{
+									"key": "end_date",
+									"value": "2025-06-15",
+									"type": "text"
+								},
+								{
+									"key": "quantity",
+									"value": "5",
+									"type": "text"
+								},
+								{
+									"key": "start_time",
+									"value": "09:00",
+									"type": "text"
+								},
+								{
+									"key": "end_time",
+									"value": "17:00",
+									"type": "text"
+								},
+								{
+									"key": "images[]",
+									"type": "file",
+									"src": "/C:/Users/USER/Downloads/watch.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/tools/edit/{{random_tool_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tools",
+								"edit",
+								"{{random_tool_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// Basic success checks\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"pm.test(\"Deletion message is correct\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Tool deleted successfully\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Refresh tool_ids by removing deleted ID\r",
+									"let toolIds = JSON.parse(pm.collectionVariables.get(\"tool_ids\") || \"[]\");\r",
+									"let deletedId = parseInt(pm.collectionVariables.get(\"random_tool_id\"));\r",
+									"\r",
+									"// Filter out the deleted ID\r",
+									"toolIds = toolIds.filter(id => id !== deletedId);\r",
+									"\r",
+									"// Save updated array\r",
+									"pm.collectionVariables.set(\"tool_ids\", JSON.stringify(toolIds));\r",
+									"console.log(\"✅ tool_ids after deletion:\", toolIds);\r",
+									"\r",
+									"// Optional: set a new random_tool_id if list is not empty\r",
+									"if (toolIds.length > 0) {\r",
+									"    let newRandom = toolIds[Math.floor(Math.random() * toolIds.length)];\r",
+									"    pm.collectionVariables.set(\"random_tool_id\", newRandom);\r",
+									"    console.log(\"🎯 New random_tool_id:\", newRandom);\r",
+									"} else {\r",
+									"    // No tools left, clear the variable\r",
+									"    pm.collectionVariables.unset(\"random_tool_id\");\r",
+									"    console.warn(\"⚠️ No tools remaining after deletion.\");\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tools/delete/{{random_tool_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tools",
+								"delete",
+								"{{random_tool_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Review",
+			"item": [
+				{
+					"name": "store",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// Status and success checks\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success flag is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message confirms review stored\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Review stored successfully\");\r",
+									"});\r",
+									"\r",
+									"// Data object validations\r",
+									"pm.test(\"Data object exists\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"const reviewData = res.data;\r",
+									"\r",
+									"pm.test(\"Review has user_id and tool_id\", () => {\r",
+									"    pm.expect(reviewData.user_id).to.be.a(\"number\");\r",
+									"    pm.expect(reviewData.tool_id).to.satisfy(id => typeof id === \"string\" || typeof id === \"number\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Review content is present\", () => {\r",
+									"    pm.expect(reviewData.content).to.be.a(\"string\").and.not.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Star rating is present and valid\", () => {\r",
+									"    pm.expect(reviewData.star).to.satisfy(star => {\r",
+									"        const num = Number(star);\r",
+									"        return !isNaN(num) && num >= 1 && num <= 5;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Review id is present and a number\", () => {\r",
+									"    pm.expect(reviewData.id).to.be.a(\"number\");\r",
+									"});\r",
+									"\r",
+									"// Attachments should be an array (can be empty)\r",
+									"pm.test(\"Attachments is an array\", () => {\r",
+									"    pm.expect(reviewData.attachments).to.be.an(\"array\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tool_id",
+									"value": "{{random_tool_id}}",
+									"type": "text"
+								},
+								{
+									"key": "content",
+									"value": "test review waawd1212",
+									"type": "text"
+								},
+								{
+									"key": "star",
+									"value": "4",
+									"type": "text"
+								},
+								{
+									"key": "images[]",
+									"type": "file",
+									"src": "/C:/Users/USER/Downloads/pending.png"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/review/store",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"review",
+								"store"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "my all tools review",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// Check status code\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Check success is true\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"// Check message\r",
+									"pm.test(\"Message indicates successful fetch\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Data Fetch Successfully\");\r",
+									"});\r",
+									"\r",
+									"// Check data is an array with at least one item\r",
+									"pm.test(\"Data is an array with at least one item\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"array\").that.is.not.empty;\r",
+									"});\r",
+									"\r",
+									"// Validate each item in data array\r",
+									"res.data.forEach((item, i) => {\r",
+									"    pm.test(`Item ${i + 1} has valid id and tool_name`, () => {\r",
+									"        pm.expect(item).to.have.property(\"id\").that.is.a(\"number\");\r",
+									"        pm.expect(item).to.have.property(\"tool_name\").that.is.a(\"string\").and.not.empty;\r",
+									"    });\r",
+									"    pm.test(`Item ${i + 1} has first_image`, () => {\r",
+									"        pm.expect(item).to.have.property(\"first_image\").that.is.a(\"string\");\r",
+									"    });\r",
+									"    pm.test(`Item ${i + 1} average_rating is a number`, () => {\r",
+									"        pm.expect(item.average_rating).to.be.a(\"number\");\r",
+									"    });\r",
+									"    pm.test(`Item ${i + 1} total_ratings is a number`, () => {\r",
+									"        pm.expect(item.total_ratings).to.be.a(\"number\");\r",
+									"    });\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/review/get",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"review",
+								"get"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Frontend",
+			"item": [
+				{
+					"name": "popular tools",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data is a non-empty array\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"array\").that.is.not.empty;\r",
+									"});\r",
+									"\r",
+									"if (res.data.length > 0) {\r",
+									"    // Pick a random index\r",
+									"    const randomIndex = Math.floor(Math.random() * res.data.length);\r",
+									"    const randomTool = res.data[randomIndex];\r",
+									"\r",
+									"    pm.test(\"Randomly selected tool has a slug\", () => {\r",
+									"        pm.expect(randomTool).to.have.property(\"slug\").that.is.a(\"string\").and.not.empty;\r",
+									"    });\r",
+									"\r",
+									"    pm.collectionVariables.set(\"tool_slug\", randomTool.slug);\r",
+									"    console.log(`Saved tool_slug: ${randomTool.slug} (index ${randomIndex})`);\r",
+									"} else {\r",
+									"    pm.test(\"No tools found in data\", () => {\r",
+									"        pm.expect.fail(\"Data array is empty\");\r",
+									"    });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "lang",
+								"value": "bn",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tool_id",
+									"value": "{{tool_id}}",
+									"type": "text"
+								},
+								{
+									"key": "content",
+									"value": "test review",
+									"type": "text"
+								},
+								{
+									"key": "star",
+									"value": "5",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/frontend/popular?lang=En",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"frontend",
+								"popular"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "En"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "per tools",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "lang",
+								"value": "bn",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tool_id",
+									"value": "{{tool_id}}",
+									"type": "text"
+								},
+								{
+									"key": "content",
+									"value": "test review",
+									"type": "text"
+								},
+								{
+									"key": "star",
+									"value": "5",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/frontend/ditails/{{tool_slug}}?lang=es",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"frontend",
+								"ditails",
+								"{{tool_slug}}"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "es"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "serach",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category_id",
+									"value": "{{category_id}}",
+									"type": "text"
+								},
+								{
+									"key": "location",
+									"value": "New York, NY",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "min_price",
+									"value": "8",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "max_price",
+									"value": "12",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/frontend/search",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"frontend",
+								"search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "all location",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data is a non-empty array\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"array\").that.is.not.empty;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tool_id",
+									"value": "{{tool_id}}",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "content",
+									"value": "test review",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "star",
+									"value": "5",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/frontend/list/loaction",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"frontend",
+								"list",
+								"loaction"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "all category",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data is a non-empty array\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"array\").that.is.not.empty;\r",
+									"});\r",
+									"\r",
+									"res.data.forEach((category, index) => {\r",
+									"    pm.test(`Category ${index + 1} has id, name and image`, () => {\r",
+									"        pm.expect(category).to.have.property(\"id\").that.is.a(\"number\");\r",
+									"        pm.expect(category).to.have.property(\"name\").that.is.a(\"string\").and.not.empty;\r",
+									"        pm.expect(category).to.have.property(\"image\").that.is.a(\"string\").and.not.empty;\r",
+									"    });\r",
+									"\r",
+									"    pm.test(`Category ${index + 1} tools_count is a number`, () => {\r",
+									"        pm.expect(category.tools_count).to.be.a(\"number\");\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tool_id",
+									"value": "{{random_tool_id}}",
+									"type": "text"
+								},
+								{
+									"key": "content",
+									"value": "test review",
+									"type": "text"
+								},
+								{
+									"key": "star",
+									"value": "5",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/frontend/list/category",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"frontend",
+								"list",
+								"category"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Chats",
+			"item": [
+				{
+					"name": "send message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// ✅ Basic response checks\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message confirms successful send\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Message sent successfully\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Check message object\r",
+									"pm.test(\"Message object is present\", () => {\r",
+									"    pm.expect(res.data.message).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"const msg = res.data.message;\r",
+									"\r",
+									"// ✅ Check message body\r",
+									"pm.test(\"Message body is valid\", () => {\r",
+									"    pm.expect(msg.body).to.be.a(\"string\").and.not.empty;\r",
+									"});\r",
+									"\r",
+									"// ✅ Save message ID\r",
+									"if (msg.id) {\r",
+									"    pm.collectionVariables.set(\"message_id\", msg.id);\r",
+									"    console.log(\"✅ Message ID saved:\", msg.id);\r",
+									"    pm.test(\"Message ID is a number\", () => {\r",
+									"        pm.expect(msg.id).to.be.a(\"number\");\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"// ✅ Save conversation ID\r",
+									"if (msg.conversation_id) {\r",
+									"    pm.collectionVariables.set(\"conversation_id\", msg.conversation_id);\r",
+									"    console.log(\"✅ Conversation ID saved:\", msg.conversation_id);\r",
+									"    pm.test(\"Conversation ID is a number\", () => {\r",
+									"        pm.expect(msg.conversation_id).to.be.a(\"number\");\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"// ✅ Validate sender (sendable)\r",
+									"if (msg.sendable) {\r",
+									"    const sender = msg.sendable;\r",
+									"\r",
+									"    pm.test(\"Sender info is valid\", () => {\r",
+									"        pm.expect(sender.name).to.be.a(\"string\").and.not.empty;\r",
+									"        pm.expect(sender.email).to.be.a(\"string\").and.include(\"@\");\r",
+									"    });\r",
+									"\r",
+									"    pm.collectionVariables.set(\"sender_email\", sender.email);\r",
+									"    pm.collectionVariables.set(\"sender_id\", sender.id);\r",
+									"    console.log(\"✅ Sender email saved:\", sender.email);\r",
+									"    console.log(\"✅ Sender ID saved:\", sender.id);\r",
+									"}\r",
+									"\r",
+									"// ✅ Validate created_at format\r",
+									"pm.test(\"Message has valid timestamp\", () => {\r",
+									"    pm.expect(msg.created_at).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}/);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "to_user_id",
+									"value": "30",
+									"type": "text"
+								},
+								{
+									"key": "message",
+									"value": "hlw admin test 123",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/chat/send",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chat",
+								"send"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data has conversations array\", () => {\r",
+									"    pm.expect(res.data).to.have.property(\"conversations\").that.is.an(\"array\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "to_user_id",
+									"value": "{{id}}",
+									"type": "text"
+								},
+								{
+									"key": "message",
+									"value": "hlw admin",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/chat/get",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chat",
+								"get"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Booking",
+			"item": [
+				{
+					"name": "store",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// ✅ Check for 422 status code\r",
+									"pm.test(\"Status code is 422\", () => {\r",
+									"    pm.response.to.have.status(422);\r",
+									"});\r",
+									"\r",
+									"// ✅ Status is false\r",
+									"pm.test(\"Status is false\", () => {\r",
+									"    pm.expect(res.status).to.be.false;\r",
+									"});\r",
+									"\r",
+									"// ✅ Message explains Stripe setup issue\r",
+									"pm.test(\"Error message mentions Stripe setup\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Stripe setup\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Data should be an empty array\r",
+									"pm.test(\"Data is an empty array\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"array\").that.is.empty;\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Parse the JSON string from collection variables\r",
+									"const startDateMap = JSON.parse(pm.collectionVariables.get(\"start_date_map\") || \"{}\");\r",
+									"\r",
+									"// Get the current tool_id saved in collection variable\r",
+									"const toolId = pm.collectionVariables.get(\"random_tool_id\");\r",
+									"\r",
+									"if (toolId && startDateMap[toolId]) {\r",
+									"    const startDate = startDateMap[toolId];\r",
+									"    \r",
+									"    // Save start_date as a variable accessible in the request (environment or local)\r",
+									"    pm.variables.set(\"start_date\", startDate); // for request scope variable\r",
+									"\r",
+									"    // OR save as environment variable if you prefer\r",
+									"    // pm.environment.set(\"start_date\", startDate);\r",
+									"\r",
+									"    console.log(`✅ Start date for tool ${toolId}: ${startDate}`);\r",
+									"} else {\r",
+									"    console.warn(`⚠️ No start_date found for tool id: ${toolId}`);\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tool_id",
+									"value": "{{random_tool_id}}",
+									"type": "text"
+								},
+								{
+									"key": "start_date",
+									"value": "{{start_date}}",
+									"type": "text"
+								},
+								{
+									"key": "end_date",
+									"value": "{{start_date}}",
+									"type": "text"
+								},
+								{
+									"key": "quantity",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/booking/store",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"booking",
+								"store"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// ✅ Status code is 200\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// ✅ Success is true\r",
+									"pm.test(\"Success flag is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"// ✅ Message confirms data fetch\r",
+									"pm.test(\"Message confirms data fetch\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Data Fetch successfully\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Bookings data array exists\r",
+									"pm.test(\"Bookings data is present\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"object\");\r",
+									"    pm.expect(res.data.data).to.be.an(\"array\");\r",
+									"});\r",
+									"\r",
+									"// ✅ No bookings found\r",
+									"pm.test(\"Bookings list is empty\", () => {\r",
+									"    pm.expect(res.data.data.length).to.eql(0);\r",
+									"});\r",
+									"\r",
+									"// ✅ Pagination fields exist\r",
+									"pm.test(\"Pagination is valid\", () => {\r",
+									"    pm.expect(res.data).to.have.property(\"current_page\");\r",
+									"    pm.expect(res.data).to.have.property(\"total\");\r",
+									"    pm.expect(res.data).to.have.property(\"per_page\");\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/booking/get",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"booking",
+								"get"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Account",
+			"item": [
+				{
+					"name": "Create Account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// Status code and success flag\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success flag is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"// Check message\r",
+									"pm.test(\"Message indicates Stripe onboarding required\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Stripe onboarding required\");\r",
+									"});\r",
+									"\r",
+									"// Check is_connected is false\r",
+									"pm.test(\"is_connected is false\", () => {\r",
+									"    pm.expect(res.is_connected).to.be.false;\r",
+									"});\r",
+									"\r",
+									"// Check onboarding_url exists and is a valid URL string\r",
+									"pm.test(\"onboarding_url exists and is a valid URL\", () => {\r",
+									"    pm.expect(res).to.have.property(\"onboarding_url\");\r",
+									"    pm.expect(res.onboarding_url).to.be.a(\"string\").and.not.empty;\r",
+									"    \r",
+									"    // Simple URL format check\r",
+									"    const urlPattern = /^https?:\\/\\/.+$/;\r",
+									"    pm.expect(res.onboarding_url).to.match(urlPattern);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/stripe/account",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stripe",
+								"account"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Withdraw request",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// Test: Route should be found (no \"could not be found\" message)\r",
+									"pm.test(\"Route is found\", () => {\r",
+									"    pm.expect(pm.response.code).to.equal(200);  // or your expected success status code\r",
+									"    pm.expect(res.message).to.not.include(\"could not be found\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "amount",
+									"value": "100",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/account/withdraw/request",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"account",
+								"withdraw",
+								"request"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Earnning",
+			"item": [
+				{
+					"name": "My rent",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success flag is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is correct\", () => {\r",
+									"    pm.expect(res.message).to.eql(\"Data fetched successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data object contains expected keys\", () => {\r",
+									"    pm.expect(res.data).to.have.all.keys(\r",
+									"        \"total_earnings_last_6_months\",\r",
+									"        \"total_order_count_last_6_months\",\r",
+									"        \"total_commission_last_6_months\",\r",
+									"        \"bookings\"\r",
+									"    );\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Bookings is an array\", () => {\r",
+									"    pm.expect(res.data.bookings).to.be.an(\"array\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "{{email}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{signup_password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/earn/get",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"earn",
+								"get"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "total data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success flag is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is correct\", () => {\r",
+									"    pm.expect(res.message).to.eql(\"Dashboard data fetched successfully!\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data contains expected keys\", () => {\r",
+									"    pm.expect(res.data).to.have.all.keys(\r",
+									"        \"total_earnings\",\r",
+									"        \"total_tools\",\r",
+									"        \"total_renting\"\r",
+									"    );\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data values are numbers\", () => {\r",
+									"    pm.expect(res.data.total_earnings).to.be.a(\"number\");\r",
+									"    pm.expect(res.data.total_tools).to.be.a(\"number\");\r",
+									"    pm.expect(res.data.total_renting).to.be.a(\"number\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/earn/dashboard",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"earn",
+								"dashboard"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Profile",
+			"item": [
+				{
+					"name": "get all information",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is correct\", () => {\r",
+									"    pm.expect(res.message).to.eql(\"Data Fetch Successfully!\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data contains expected fields\", () => {\r",
+									"    pm.expect(res.data).to.have.all.keys(\"name\", \"avatar\", \"email\", \"phone\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Name is a non-empty string\", () => {\r",
+									"    pm.expect(res.data.name).to.be.a(\"string\").and.not.be.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Avatar is a valid URL\", () => {\r",
+									"    pm.expect(res.data.avatar).to.match(/^https?:\\/\\/.+/);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Email is a valid string and contains @\", () => {\r",
+									"    pm.expect(res.data.email).to.be.a(\"string\").and.include(\"@\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Phone is either null or a string\", () => {\r",
+									"    pm.expect(res.data.phone === null || typeof res.data.phone === \"string\").to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/user/get",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"get"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update information",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is correct\", () => {\r",
+									"    pm.expect(res.message).to.eql(\"User updated successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data contains user and phone fields\", () => {\r",
+									"    pm.expect(res.data).to.have.all.keys(\"user\", \"phone\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"User is a non-empty string\", () => {\r",
+									"    pm.expect(res.data.user).to.be.a(\"string\").and.not.be.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Phone is a non-empty string\", () => {\r",
+									"    pm.expect(res.data.phone).to.be.a(\"string\").and.not.be.empty;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "{{$randomFullName}}",
+									"type": "text"
+								},
+								{
+									"key": "phone",
+									"value": "{{$randomPhoneNumber}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/user/updateUserInfo",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"updateUserInfo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change password",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let randomnum = String(Math.floor(Math.random() * 100000000)).padStart(8,0);\r",
+									"console.log('random number',randomnum)\r",
+									"\r",
+									"pm.collectionVariables.set(\"new_password\", randomnum)\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is correct\", () => {\r",
+									"    pm.expect(res.message).to.eql(\"Password changed successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data is an empty array\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"array\").that.is.empty;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "old_password",
+									"value": "{{signup_password}}",
+									"type": "text"
+								},
+								{
+									"key": "new_password",
+									"value": "{{new_password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/user/change-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"change-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "profile picture",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is correct\", () => {\r",
+									"    pm.expect(res.message).to.eql(\"Avatar updated successfully.\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data contains avatar_url\", () => {\r",
+									"    pm.expect(res.data).to.have.property(\"avatar_url\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"avatar_url is a valid URL\", () => {\r",
+									"    pm.expect(res.data.avatar_url).to.match(/^https?:\\/\\/.+/);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "avatar",
+									"type": "file",
+									"src": "/C:/Users/USER/Downloads/download (1).png"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/user/avatar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"avatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message confirms user deletion\", () => {\r",
+									"    pm.expect(res.message).to.include(\"User deleted successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data is an empty array\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"array\").that.is.empty;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "{{email}}",
+									"type": "text"
+								},
+								{
+									"key": "phone",
+									"value": "{{new_password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/user/delete/user",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"delete",
+								"user"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://louish2.softvencefsd.xyz/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "signup_password",
+			"value": ""
+		},
+		{
+			"key": "otp",
+			"value": ""
+		},
+		{
+			"key": "email",
+			"value": ""
+		},
+		{
+			"key": "access_token",
+			"value": ""
+		},
+		{
+			"key": "attachment_url",
+			"value": ""
+		},
+		{
+			"key": "tool_id",
+			"value": ""
+		},
+		{
+			"key": "first_image_url",
+			"value": ""
+		},
+		{
+			"key": "category_id",
+			"value": ""
+		},
+		{
+			"key": "first_attachment_url",
+			"value": ""
+		},
+		{
+			"key": "tool_slug",
+			"value": ""
+		},
+		{
+			"key": "id",
+			"value": ""
+		},
+		{
+			"key": "new_password",
+			"value": ""
+		},
+		{
+			"key": "message_id",
+			"value": ""
+		},
+		{
+			"key": "conversation_id",
+			"value": ""
+		},
+		{
+			"key": "sender_email",
+			"value": ""
+		},
+		{
+			"key": "sender_id",
+			"value": ""
+		},
+		{
+			"key": "tool_ids",
+			"value": ""
+		},
+		{
+			"key": "availability_id",
+			"value": ""
+		},
+		{
+			"key": "tool_name",
+			"value": ""
+		},
+		{
+			"key": "tool_file_url",
+			"value": ""
+		},
+		{
+			"key": "start_date_map",
+			"value": ""
+		},
+		{
+			"key": "random_tool_id",
+			"value": ""
+		}
+	]
+=======
+{
+	"info": {
+		"_postman_id": "8952cd32-dc77-49fa-b862-464a9d7f7f71",
+		"name": "louish2 Final",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22742638",
+		"_collection_link": "https://lunar-firefly-999126.postman.co/workspace/louish2-~4e12316f-3909-4c99-af3d-19fa88ab55a6/collection/22742638-8952cd32-dc77-49fa-b862-464a9d7f7f71?action=share&source=collection_link&creator=22742638"
+	},
+	"item": [
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// ✅ Basic response tests\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message asks to check email\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Check your email to verify your account\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Extract and save user data if present\r",
+									"if (res.data && res.data.user) {\r",
+									"    const user = res.data.user;\r",
+									"\r",
+									"    // Save email\r",
+									"    if (user.email) {\r",
+									"        pm.collectionVariables.set(\"email\", user.email);\r",
+									"        console.log(\"✅ Email saved:\", user.email);\r",
+									"\r",
+									"        pm.test(\"Email is present\", () => {\r",
+									"            pm.expect(user.email).to.be.a(\"string\").and.not.empty;\r",
+									"        });\r",
+									"    }\r",
+									"\r",
+									"\r",
+									"    // Save user ID\r",
+									"    if (user.id) {\r",
+									"        pm.collectionVariables.set(\"id\", user.id);\r",
+									"        console.log(\"✅ Email saved:\", user.id);\r",
+									"\r",
+									"        pm.test(\"ID is present\", () => {\r",
+									"        pm.expect(user.id).to.be.a(\"number\");\r",
+									"});\r",
+									"    }\r",
+									"\r",
+									"    // Save OTP\r",
+									"    if (user.otp) {\r",
+									"        pm.collectionVariables.set(\"otp\", user.otp);\r",
+									"        console.log(\"✅ OTP saved:\", user.otp);\r",
+									"\r",
+									"        pm.test(\"OTP is present\", () => {\r",
+									"            pm.expect(user.otp).to.be.a(\"number\");\r",
+									"        });\r",
+									"    }\r",
+									"\r",
+									"    \r",
+									"\r",
+									"} else {\r",
+									"    pm.test(\"User object is present\", () => {\r",
+									"        pm.expect.fail(\"User data is missing in response.\");\r",
+									"    });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let randomnum = String(Math.floor(Math.random() * 100000000)).padStart(8,0);\r",
+									"console.log('random number',randomnum)\r",
+									"\r",
+									"pm.collectionVariables.set(\"signup_password\", randomnum)\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "{{$randomEmail}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{signup_password}}",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "{{$randomFullName}}",
+									"type": "text"
+								},
+								{
+									"key": "password_confirmation",
+									"value": "{{signup_password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check otp",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"const statusCode = pm.response.code;\r",
+									"\r",
+									"// ✅ Pass if status is 200 or expected 400 error\r",
+									"pm.test(\"Status code is 200 or Email already verified (400)\", () => {\r",
+									"    pm.expect([200, 400]).to.include(statusCode);\r",
+									"});\r",
+									"\r",
+									"// ✅ Handle successful verification (200)\r",
+									"if (statusCode === 200 && res.success) {\r",
+									"    pm.test(\"Response success is true\", () => {\r",
+									"        pm.expect(res.success).to.be.true;\r",
+									"    });\r",
+									"\r",
+									"    pm.test(\"Message confirms email verification\", () => {\r",
+									"        pm.expect(res.message).to.include(\"Email verified successfully\");\r",
+									"    });\r",
+									"\r",
+									"    // ✅ Save access_token\r",
+									"    if (\r",
+									"        res.data &&\r",
+									"        res.data.token &&\r",
+									"        res.data.token.original &&\r",
+									"        res.data.token.original.access_token\r",
+									"    ) {\r",
+									"        const accessToken = res.data.token.original.access_token;\r",
+									"        pm.collectionVariables.set(\"access_token\", accessToken);\r",
+									"        console.log(\"✅ Access token saved:\", accessToken);\r",
+									"\r",
+									"        pm.test(\"Access token exists and is saved\", () => {\r",
+									"            pm.expect(accessToken).to.be.a(\"string\").that.is.not.empty;\r",
+									"        });\r",
+									"    } else {\r",
+									"        pm.test(\"Access token present\", () => {\r",
+									"            pm.expect.fail(\"Access token not found in successful response\");\r",
+									"        });\r",
+									"    }\r",
+									"\r",
+									"// ✅ Handle known case: already verified (400)\r",
+									"} else if (statusCode === 400 && res.message === \"Email already verified.\") {\r",
+									"    pm.test(\"Email already verified message is shown\", () => {\r",
+									"        pm.expect(res.message).to.include(\"Email already verified.\");\r",
+									"    });\r",
+									"    console.warn(\"⚠️ Email already verified. Skipping token save.\");\r",
+									"    \r",
+									"// ❌ Any other unexpected errors\r",
+									"} else {\r",
+									"    pm.test(\"Unexpected error\", () => {\r",
+									"        pm.expect.fail(`Unexpected response: ${res.message}`);\r",
+									"    });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "{{email}}",
+									"type": "text"
+								},
+								{
+									"key": "otp",
+									"value": "{{otp}}",
+									"type": "text"
+								},
+								{
+									"key": "action",
+									"value": "email_verification",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/verify-otp-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"verify-otp-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// ✅ Test: status code and success\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Login success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message confirms login\", () => {\r",
+									"    pm.expect(res.message).to.include(\"User logged in successfully\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Save access_token to collection variable\r",
+									"if (\r",
+									"    res.data &&\r",
+									"    res.data.token &&\r",
+									"    res.data.token.original &&\r",
+									"    res.data.token.original.access_token\r",
+									") {\r",
+									"    const accessToken = res.data.token.original.access_token;\r",
+									"    pm.collectionVariables.set(\"access_token\", accessToken);\r",
+									"    console.log(\"✅ Access token saved:\", accessToken);\r",
+									"\r",
+									"    pm.test(\"Access token is a non-empty string\", () => {\r",
+									"        pm.expect(accessToken).to.be.a(\"string\").that.is.not.empty;\r",
+									"    });\r",
+									"} else {\r",
+									"    pm.test(\"Access token exists\", () => {\r",
+									"        pm.expect.fail(\"❌ Access token not found in response.\");\r",
+									"    });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "{{email}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{signup_password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Post",
+			"item": [
+				{
+					"name": "store",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// ✅ Basic status and success tests\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success flag is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response message is correct\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Tool created successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data object exists\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Use different variable name to avoid redeclaration\r",
+									"const toolData = res.data;\r",
+									"\r",
+									"// Save tool id for future requests\r",
+									"pm.collectionVariables.set(\"tool_id\", toolData.id);\r",
+									"console.log(\"✅ Tool ID saved:\", toolData.id);\r",
+									"\r",
+									"// Save start_date mapped by tool id\r",
+									"const startDate = toolData.availability?.start_date || null;\r",
+									"\r",
+									"if (startDate) {\r",
+									"    let startDateMap = {};\r",
+									"    const existingMapStr = pm.collectionVariables.get(\"start_date_map\");\r",
+									"\r",
+									"    if (existingMapStr) {\r",
+									"        try {\r",
+									"            startDateMap = JSON.parse(existingMapStr);\r",
+									"        } catch (e) {\r",
+									"            console.warn(\"Could not parse existing start_date_map, resetting.\");\r",
+									"        }\r",
+									"    }\r",
+									"\r",
+									"    startDateMap[toolData.id] = startDate;\r",
+									"    pm.collectionVariables.set(\"start_date_map\", JSON.stringify(startDateMap));\r",
+									"\r",
+									"    console.log(`✅ Saved start_date for tool ${toolData.id}: ${startDate}`);\r",
+									"} else {\r",
+									"    console.warn(\"⚠️ No start_date found in availability\");\r",
+									"}\r",
+									"\r",
+									"// ➡️ Set next request\r",
+									"postman.setNextRequest(\"store_2\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Array of tool names\r",
+									"const tools = [\"Knife\", \"Hammer\", \"Screwdriver\", \"Wrench\", \"Pliers\"];\r",
+									"\r",
+									"// Select a random tool name\r",
+									"const toolName = tools[Math.floor(Math.random() * tools.length)];\r",
+									"pm.variables.set(\"name\", toolName);\r",
+									"\r",
+									"// Set dynamic description\r",
+									"pm.variables.set(\"description\", pm.variables.replaceIn(\"{{$randomWords}}\"));\r",
+									"\r",
+									"// Random Latitude & Longitude\r",
+									"pm.variables.set(\"latitude\", (Math.random() * 180 - 90).toFixed(6));\r",
+									"pm.variables.set(\"longitude\", (Math.random() * 360 - 180).toFixed(6));\r",
+									"\r",
+									"// Random Price and Quantity\r",
+									"pm.variables.set(\"price\", Math.floor(Math.random() * 150) + 50);\r",
+									"pm.variables.set(\"quantity\", Math.floor(Math.random() * 20) + 1);\r",
+									"\r",
+									"// Random Start Date (within next 30 days)\r",
+									"let startDate = new Date();\r",
+									"startDate.setDate(startDate.getDate() + Math.floor(Math.random() * 30));\r",
+									"pm.variables.set(\"start_date\", startDate.toISOString().split('T')[0]);\r",
+									"\r",
+									"// Function to generate random time (HH:mm)\r",
+									"function randomTime() {\r",
+									"    let h = Math.floor(Math.random() * 24);\r",
+									"    let m = Math.floor(Math.random() * 60);\r",
+									"    return (\"0\" + h).slice(-2) + \":\" + (\"0\" + m).slice(-2);\r",
+									"}\r",
+									"\r",
+									"// Start and End Times\r",
+									"let startTime = randomTime();\r",
+									"pm.variables.set(\"start_time\", startTime);\r",
+									"\r",
+									"let [sh, sm] = startTime.split(\":\").map(Number);\r",
+									"let eh = (sh + Math.floor(Math.random() * 7) + 6) % 24;\r",
+									"let em = sm;\r",
+									"pm.variables.set(\"end_time\", (\"0\" + eh).slice(-2) + \":\" + (\"0\" + em).slice(-2));\r",
+									"\r",
+									"// Random Location\r",
+									"pm.variables.set(\"location\", pm.variables.replaceIn(\"{{$randomCity}}, {{$randomCountry}}\"));\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category_id",
+									"value": "3",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "{{name}}",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "{{description}}",
+									"type": "text"
+								},
+								{
+									"key": "latitude",
+									"value": "{{latitude}}",
+									"type": "text"
+								},
+								{
+									"key": "longitude",
+									"value": "{{longitude}}",
+									"type": "text"
+								},
+								{
+									"key": "images[]",
+									"type": "file",
+									"src": "/C:/Users/USER/Downloads/download (1).jpg"
+								},
+								{
+									"key": "price",
+									"value": "{{price}}",
+									"type": "text"
+								},
+								{
+									"key": "start_date",
+									"value": "{{start_date}}",
+									"type": "text"
+								},
+								{
+									"key": "start_time",
+									"value": "{{start_time}}",
+									"type": "text"
+								},
+								{
+									"key": "end_time",
+									"value": "{{end_time}}",
+									"type": "text"
+								},
+								{
+									"key": "quantity",
+									"value": "{{quantity}}",
+									"type": "text"
+								},
+								{
+									"key": "location",
+									"value": "{{location}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/tools/store",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tools",
+								"store"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "store_2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// Basic status and success tests\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success flag is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response message is correct\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Tool created successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data object exists\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"const toolData = res.data;\r",
+									"\r",
+									"// Save tool id for future requests\r",
+									"pm.collectionVariables.set(\"tool_id\", toolData.id);\r",
+									"console.log(\"✅ Tool ID saved:\", toolData.id);\r",
+									"\r",
+									"// Save start_date mapped by tool id\r",
+									"const startDate = toolData.availability?.start_date || null;\r",
+									"\r",
+									"if (startDate) {\r",
+									"    let startDateMap = {};\r",
+									"    const existingMapStr = pm.collectionVariables.get(\"start_date_map\");\r",
+									"\r",
+									"    if (existingMapStr) {\r",
+									"        try {\r",
+									"            startDateMap = JSON.parse(existingMapStr);\r",
+									"        } catch (e) {\r",
+									"            console.warn(\"Could not parse existing start_date_map, resetting.\");\r",
+									"        }\r",
+									"    }\r",
+									"\r",
+									"    startDateMap[toolData.id] = startDate;\r",
+									"    pm.collectionVariables.set(\"start_date_map\", JSON.stringify(startDateMap));\r",
+									"\r",
+									"    console.log(`✅ Saved start_date for tool ${toolData.id}: ${startDate}`);\r",
+									"} else {\r",
+									"    console.warn(\"⚠️ No start_date found in availability\");\r",
+									"}\r",
+									"\r",
+									"postman.setNextRequest(\"get\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Array of tool names\r",
+									"const tools = [\"Knife\", \"Hammer\", \"Screwdriver\", \"Wrench\", \"Pliers\"];\r",
+									"\r",
+									"// Select a random tool name\r",
+									"const toolName = tools[Math.floor(Math.random() * tools.length)];\r",
+									"pm.variables.set(\"name\", toolName);\r",
+									"\r",
+									"// Set dynamic description\r",
+									"pm.variables.set(\"description\", pm.variables.replaceIn(\"{{$randomWords}}\"));\r",
+									"\r",
+									"// Random Latitude & Longitude\r",
+									"pm.variables.set(\"latitude\", (Math.random() * 180 - 90).toFixed(6));\r",
+									"pm.variables.set(\"longitude\", (Math.random() * 360 - 180).toFixed(6));\r",
+									"\r",
+									"// Random Price and Quantity\r",
+									"pm.variables.set(\"price\", Math.floor(Math.random() * 150) + 50);\r",
+									"pm.variables.set(\"quantity\", Math.floor(Math.random() * 20) + 1);\r",
+									"\r",
+									"// Random Start Date (within next 30 days)\r",
+									"let startDate = new Date();\r",
+									"startDate.setDate(startDate.getDate() + Math.floor(Math.random() * 30));\r",
+									"pm.variables.set(\"start_date\", startDate.toISOString().split('T')[0]);\r",
+									"\r",
+									"// Function to generate random time (HH:mm)\r",
+									"function randomTime() {\r",
+									"    let h = Math.floor(Math.random() * 24);\r",
+									"    let m = Math.floor(Math.random() * 60);\r",
+									"    return (\"0\" + h).slice(-2) + \":\" + (\"0\" + m).slice(-2);\r",
+									"}\r",
+									"\r",
+									"// Start and End Times\r",
+									"let startTime = randomTime();\r",
+									"pm.variables.set(\"start_time\", startTime);\r",
+									"\r",
+									"let [sh, sm] = startTime.split(\":\").map(Number);\r",
+									"let eh = (sh + Math.floor(Math.random() * 7) + 6) % 24;\r",
+									"let em = sm;\r",
+									"pm.variables.set(\"end_time\", (\"0\" + eh).slice(-2) + \":\" + (\"0\" + em).slice(-2));\r",
+									"\r",
+									"// Random Location\r",
+									"pm.variables.set(\"location\", pm.variables.replaceIn(\"{{$randomCity}}, {{$randomCountry}}\"));\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category_id",
+									"value": "3",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "{{name}}",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "{{description}}",
+									"type": "text"
+								},
+								{
+									"key": "latitude",
+									"value": "{{latitude}}",
+									"type": "text"
+								},
+								{
+									"key": "longitude",
+									"value": "{{longitude}}",
+									"type": "text"
+								},
+								{
+									"key": "images[]",
+									"type": "file",
+									"src": "/C:/Users/USER/Downloads/cousine.jpg"
+								},
+								{
+									"key": "price",
+									"value": "{{price}}",
+									"type": "text"
+								},
+								{
+									"key": "start_date",
+									"value": "{{start_date}}",
+									"type": "text"
+								},
+								{
+									"key": "start_time",
+									"value": "{{start_time}}",
+									"type": "text"
+								},
+								{
+									"key": "end_time",
+									"value": "{{end_time}}",
+									"type": "text"
+								},
+								{
+									"key": "quantity",
+									"value": "{{quantity}}",
+									"type": "text"
+								},
+								{
+									"key": "location",
+									"value": "{{location}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/tools/store",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tools",
+								"store"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the response\r",
+									"let res = pm.response.json();\r",
+									"\r",
+									"// Check if success is true and data array exists\r",
+									"if (res.success && Array.isArray(res.data.data)) {\r",
+									"    // Extract all IDs from the response\r",
+									"    let ids = res.data.data.map(item => item.id);\r",
+									"    \r",
+									"    // Save the array as a collection variable\r",
+									"    pm.collectionVariables.set(\"tool_ids\", JSON.stringify(ids));\r",
+									"    \r",
+									"    // Pick a random ID and save it\r",
+									"    let randomId = ids[Math.floor(Math.random() * ids.length)];\r",
+									"    pm.collectionVariables.set(\"random_tool_id\", randomId);\r",
+									"\r",
+									"    console.log(\"Tool IDs:\", ids);\r",
+									"    console.log(\"Random ID selected:\", randomId);\r",
+									"    \r",
+									"    pm.test(\"✅ Tool IDs extracted and random ID selected\", function () {\r",
+									"        pm.expect(ids.length).to.be.greaterThan(0);\r",
+									"    });\r",
+									"} else {\r",
+									"    pm.test(\"❌ Failed to extract tool IDs\", function () {\r",
+									"        pm.expect.fail(\"Response format invalid or data missing\");\r",
+									"    });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tools/get",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tools",
+								"get"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Array of tool names\r",
+									"const tools = [\"Knife\", \"Hammer\", \"Screwdriver\", \"Wrench\", \"Pliers\"];\r",
+									"\r",
+									"// Select a random tool name\r",
+									"const toolName = tools[Math.floor(Math.random() * tools.length)];\r",
+									"pm.variables.set(\"name\", toolName);\r",
+									"\r",
+									"// Set dynamic description\r",
+									"pm.variables.set(\"description\", pm.variables.replaceIn(\"{{$randomWords}}\"));\r",
+									"\r",
+									"// Random Latitude & Longitude\r",
+									"pm.variables.set(\"latitude\", (Math.random() * 180 - 90).toFixed(6));\r",
+									"pm.variables.set(\"longitude\", (Math.random() * 360 - 180).toFixed(6));\r",
+									"\r",
+									"// Random Price and Quantity\r",
+									"pm.variables.set(\"price\", Math.floor(Math.random() * 150) + 50);\r",
+									"pm.variables.set(\"quantity\", Math.floor(Math.random() * 20) + 1);\r",
+									"\r",
+									"// Random Start Date (within next 30 days)\r",
+									"let startDate = new Date();\r",
+									"startDate.setDate(startDate.getDate() + Math.floor(Math.random() * 30));\r",
+									"pm.variables.set(\"start_date\", startDate.toISOString().split('T')[0]);\r",
+									"\r",
+									"// Function to generate random time (HH:mm)\r",
+									"function randomTime() {\r",
+									"    let h = Math.floor(Math.random() * 24);\r",
+									"    let m = Math.floor(Math.random() * 60);\r",
+									"    return (\"0\" + h).slice(-2) + \":\" + (\"0\" + m).slice(-2);\r",
+									"}\r",
+									"\r",
+									"// Start and End Times\r",
+									"let startTime = randomTime();\r",
+									"pm.variables.set(\"start_time\", startTime);\r",
+									"\r",
+									"let [sh, sm] = startTime.split(\":\").map(Number);\r",
+									"let eh = (sh + Math.floor(Math.random() * 7) + 6) % 24;\r",
+									"let em = sm;\r",
+									"pm.variables.set(\"end_time\", (\"0\" + eh).slice(-2) + \":\" + (\"0\" + em).slice(-2));\r",
+									"\r",
+									"// Random Location\r",
+									"pm.variables.set(\"location\", pm.variables.replaceIn(\"{{$randomCity}}, {{$randomCountry}}\"));\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the response body\r",
+									"let res = pm.response.json();\r",
+									"\r",
+									"// ✅ Basic status checks\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response has success flag\", function () {\r",
+									"    pm.expect(res.success).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is correct\", function () {\r",
+									"    pm.expect(res.message).to.eql(\"Tool updated successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data object is present\", function () {\r",
+									"    pm.expect(res).to.have.property(\"data\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Check key data fields\r",
+									"pm.test(\"Tool ID is a number\", function () {\r",
+									"    pm.expect(res.data.id).to.be.a(\"number\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Tool name is present\", function () {\r",
+									"    pm.expect(res.data.name).to.be.a(\"string\").and.not.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Availability section is present\", function () {\r",
+									"    pm.expect(res.data).to.have.property(\"availability\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Attachments array has at least one file\", function () {\r",
+									"    pm.expect(res.data.attachments.length).to.be.greaterThan(0);\r",
+									"});\r",
+									"\r",
+									"// ✅ Save values to collection/environment variables\r",
+									"pm.collectionVariables.set(\"tool_id\", res.data.id);\r",
+									"pm.collectionVariables.set(\"availability_id\", res.data.availability.id);\r",
+									"pm.collectionVariables.set(\"tool_name\", res.data.name);\r",
+									"pm.collectionVariables.set(\"tool_slug\", res.data.slug);\r",
+									"pm.collectionVariables.set(\"tool_file_url\", res.data.attachments[0].file_url);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category_id",
+									"value": "3",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "{{name}}",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "{{description}}",
+									"type": "text"
+								},
+								{
+									"key": "latitude",
+									"value": "{{latitude}}",
+									"type": "text"
+								},
+								{
+									"key": "longitude",
+									"value": "{{longitude}}",
+									"type": "text"
+								},
+								{
+									"key": "price",
+									"value": "{{price}}",
+									"type": "text"
+								},
+								{
+									"key": "start_date",
+									"value": "{{start_date}}",
+									"type": "text"
+								},
+								{
+									"key": "start_time",
+									"value": "{{start_time}}",
+									"type": "text"
+								},
+								{
+									"key": "end_time",
+									"value": "{{end_time}}",
+									"type": "text"
+								},
+								{
+									"key": "quantity",
+									"value": "{{quantity}}",
+									"type": "text"
+								},
+								{
+									"key": "location",
+									"value": "{{location}}",
+									"type": "text"
+								},
+								{
+									"key": "images[]",
+									"type": "file",
+									"src": "/C:/Users/USER/Downloads/watch.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/tools/update/{{random_tool_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tools",
+								"update",
+								"{{random_tool_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "edit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// Basic status and success tests\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message confirms data fetched\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Data fetched successfully\");\r",
+									"});\r",
+									"\r",
+									"// Check data object\r",
+									"pm.test(\"Data object exists\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"const responseData = res.data;\r",
+									"\r",
+									"// Validate tool object\r",
+									"pm.test(\"Tool object exists\", () => {\r",
+									"    pm.expect(responseData.tool).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"const tool = responseData.tool;\r",
+									"\r",
+									"pm.test(\"Tool ID is present and a number\", () => {\r",
+									"    pm.expect(tool.id).to.be.a(\"number\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Tool name is present and a string\", () => {\r",
+									"    pm.expect(tool.name).to.be.a(\"string\").and.not.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Tool location is present\", () => {\r",
+									"    pm.expect(tool.location).to.be.a(\"string\").and.not.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Tool price is present and a number\", () => {\r",
+									"    pm.expect(tool.price).to.be.a(\"number\");\r",
+									"});\r",
+									"\r",
+									"// Validate available object\r",
+									"pm.test(\"Available object exists\", () => {\r",
+									"    pm.expect(tool.available).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"const available = tool.available;\r",
+									"\r",
+									"pm.test(\"Available quantity is a number\", () => {\r",
+									"    pm.expect(available.quantity).to.be.a(\"number\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Available start_date is a valid date string\", () => {\r",
+									"    pm.expect(new Date(available.start_date).toString()).to.not.equal(\"Invalid Date\");\r",
+									"});\r",
+									"\r",
+									"// Save tool id as collection variable\r",
+									"pm.collectionVariables.set(\"tool_id\", tool.id);\r",
+									"console.log(\"✅ tool_id saved:\", tool.id);\r",
+									"\r",
+									"// Save first image URL as collection variable\r",
+									"if (responseData.first_image) {\r",
+									"    pm.collectionVariables.set(\"first_image_url\", responseData.first_image);\r",
+									"    console.log(\"✅ first_image_url saved:\", responseData.first_image);\r",
+									"} else {\r",
+									"    pm.test(\"First image URL present\", () => {\r",
+									"        pm.expect.fail(\"first_image URL is missing\");\r",
+									"    });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category_id",
+									"value": "2",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "Ghori",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+									"type": "text"
+								},
+								{
+									"key": "latitude",
+									"value": "40.7128",
+									"type": "text"
+								},
+								{
+									"key": "longitude",
+									"value": "-74.0060",
+									"type": "text"
+								},
+								{
+									"key": "location",
+									"value": "New York, NY",
+									"type": "text"
+								},
+								{
+									"key": "start_date",
+									"value": "2025-06-10",
+									"type": "text"
+								},
+								{
+									"key": "end_date",
+									"value": "2025-06-15",
+									"type": "text"
+								},
+								{
+									"key": "quantity",
+									"value": "5",
+									"type": "text"
+								},
+								{
+									"key": "start_time",
+									"value": "09:00",
+									"type": "text"
+								},
+								{
+									"key": "end_time",
+									"value": "17:00",
+									"type": "text"
+								},
+								{
+									"key": "images[]",
+									"type": "file",
+									"src": "/C:/Users/USER/Downloads/watch.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/tools/edit/{{random_tool_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tools",
+								"edit",
+								"{{random_tool_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// Basic success checks\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"pm.test(\"Deletion message is correct\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Tool deleted successfully\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Refresh tool_ids by removing deleted ID\r",
+									"let toolIds = JSON.parse(pm.collectionVariables.get(\"tool_ids\") || \"[]\");\r",
+									"let deletedId = parseInt(pm.collectionVariables.get(\"random_tool_id\"));\r",
+									"\r",
+									"// Filter out the deleted ID\r",
+									"toolIds = toolIds.filter(id => id !== deletedId);\r",
+									"\r",
+									"// Save updated array\r",
+									"pm.collectionVariables.set(\"tool_ids\", JSON.stringify(toolIds));\r",
+									"console.log(\"✅ tool_ids after deletion:\", toolIds);\r",
+									"\r",
+									"// Optional: set a new random_tool_id if list is not empty\r",
+									"if (toolIds.length > 0) {\r",
+									"    let newRandom = toolIds[Math.floor(Math.random() * toolIds.length)];\r",
+									"    pm.collectionVariables.set(\"random_tool_id\", newRandom);\r",
+									"    console.log(\"🎯 New random_tool_id:\", newRandom);\r",
+									"} else {\r",
+									"    // No tools left, clear the variable\r",
+									"    pm.collectionVariables.unset(\"random_tool_id\");\r",
+									"    console.warn(\"⚠️ No tools remaining after deletion.\");\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tools/delete/{{random_tool_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tools",
+								"delete",
+								"{{random_tool_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Review",
+			"item": [
+				{
+					"name": "store",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// Status and success checks\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success flag is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message confirms review stored\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Review stored successfully\");\r",
+									"});\r",
+									"\r",
+									"// Data object validations\r",
+									"pm.test(\"Data object exists\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"const reviewData = res.data;\r",
+									"\r",
+									"pm.test(\"Review has user_id and tool_id\", () => {\r",
+									"    pm.expect(reviewData.user_id).to.be.a(\"number\");\r",
+									"    pm.expect(reviewData.tool_id).to.satisfy(id => typeof id === \"string\" || typeof id === \"number\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Review content is present\", () => {\r",
+									"    pm.expect(reviewData.content).to.be.a(\"string\").and.not.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Star rating is present and valid\", () => {\r",
+									"    pm.expect(reviewData.star).to.satisfy(star => {\r",
+									"        const num = Number(star);\r",
+									"        return !isNaN(num) && num >= 1 && num <= 5;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Review id is present and a number\", () => {\r",
+									"    pm.expect(reviewData.id).to.be.a(\"number\");\r",
+									"});\r",
+									"\r",
+									"// Attachments should be an array (can be empty)\r",
+									"pm.test(\"Attachments is an array\", () => {\r",
+									"    pm.expect(reviewData.attachments).to.be.an(\"array\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tool_id",
+									"value": "{{random_tool_id}}",
+									"type": "text"
+								},
+								{
+									"key": "content",
+									"value": "test review waawd1212",
+									"type": "text"
+								},
+								{
+									"key": "star",
+									"value": "4",
+									"type": "text"
+								},
+								{
+									"key": "images[]",
+									"type": "file",
+									"src": "/C:/Users/USER/Downloads/pending.png"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/review/store",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"review",
+								"store"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "my all tools review",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// Check status code\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Check success is true\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"// Check message\r",
+									"pm.test(\"Message indicates successful fetch\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Data Fetch Successfully\");\r",
+									"});\r",
+									"\r",
+									"// Check data is an array with at least one item\r",
+									"pm.test(\"Data is an array with at least one item\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"array\").that.is.not.empty;\r",
+									"});\r",
+									"\r",
+									"// Validate each item in data array\r",
+									"res.data.forEach((item, i) => {\r",
+									"    pm.test(`Item ${i + 1} has valid id and tool_name`, () => {\r",
+									"        pm.expect(item).to.have.property(\"id\").that.is.a(\"number\");\r",
+									"        pm.expect(item).to.have.property(\"tool_name\").that.is.a(\"string\").and.not.empty;\r",
+									"    });\r",
+									"    pm.test(`Item ${i + 1} has first_image`, () => {\r",
+									"        pm.expect(item).to.have.property(\"first_image\").that.is.a(\"string\");\r",
+									"    });\r",
+									"    pm.test(`Item ${i + 1} average_rating is a number`, () => {\r",
+									"        pm.expect(item.average_rating).to.be.a(\"number\");\r",
+									"    });\r",
+									"    pm.test(`Item ${i + 1} total_ratings is a number`, () => {\r",
+									"        pm.expect(item.total_ratings).to.be.a(\"number\");\r",
+									"    });\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/review/get",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"review",
+								"get"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Frontend",
+			"item": [
+				{
+					"name": "popular tools",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data is a non-empty array\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"array\").that.is.not.empty;\r",
+									"});\r",
+									"\r",
+									"if (res.data.length > 0) {\r",
+									"    // Pick a random index\r",
+									"    const randomIndex = Math.floor(Math.random() * res.data.length);\r",
+									"    const randomTool = res.data[randomIndex];\r",
+									"\r",
+									"    pm.test(\"Randomly selected tool has a slug\", () => {\r",
+									"        pm.expect(randomTool).to.have.property(\"slug\").that.is.a(\"string\").and.not.empty;\r",
+									"    });\r",
+									"\r",
+									"    pm.collectionVariables.set(\"tool_slug\", randomTool.slug);\r",
+									"    console.log(`Saved tool_slug: ${randomTool.slug} (index ${randomIndex})`);\r",
+									"} else {\r",
+									"    pm.test(\"No tools found in data\", () => {\r",
+									"        pm.expect.fail(\"Data array is empty\");\r",
+									"    });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "lang",
+								"value": "bn",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tool_id",
+									"value": "{{tool_id}}",
+									"type": "text"
+								},
+								{
+									"key": "content",
+									"value": "test review",
+									"type": "text"
+								},
+								{
+									"key": "star",
+									"value": "5",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/frontend/popular?lang=En",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"frontend",
+								"popular"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "En"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "per tools",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "lang",
+								"value": "bn",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tool_id",
+									"value": "{{tool_id}}",
+									"type": "text"
+								},
+								{
+									"key": "content",
+									"value": "test review",
+									"type": "text"
+								},
+								{
+									"key": "star",
+									"value": "5",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/frontend/ditails/{{tool_slug}}?lang=es",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"frontend",
+								"ditails",
+								"{{tool_slug}}"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "es"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "serach",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category_id",
+									"value": "{{category_id}}",
+									"type": "text"
+								},
+								{
+									"key": "location",
+									"value": "New York, NY",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "min_price",
+									"value": "8",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "max_price",
+									"value": "12",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/frontend/search",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"frontend",
+								"search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "all location",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data is a non-empty array\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"array\").that.is.not.empty;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tool_id",
+									"value": "{{tool_id}}",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "content",
+									"value": "test review",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "star",
+									"value": "5",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/frontend/list/loaction",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"frontend",
+								"list",
+								"loaction"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "all category",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data is a non-empty array\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"array\").that.is.not.empty;\r",
+									"});\r",
+									"\r",
+									"res.data.forEach((category, index) => {\r",
+									"    pm.test(`Category ${index + 1} has id, name and image`, () => {\r",
+									"        pm.expect(category).to.have.property(\"id\").that.is.a(\"number\");\r",
+									"        pm.expect(category).to.have.property(\"name\").that.is.a(\"string\").and.not.empty;\r",
+									"        pm.expect(category).to.have.property(\"image\").that.is.a(\"string\").and.not.empty;\r",
+									"    });\r",
+									"\r",
+									"    pm.test(`Category ${index + 1} tools_count is a number`, () => {\r",
+									"        pm.expect(category.tools_count).to.be.a(\"number\");\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tool_id",
+									"value": "{{random_tool_id}}",
+									"type": "text"
+								},
+								{
+									"key": "content",
+									"value": "test review",
+									"type": "text"
+								},
+								{
+									"key": "star",
+									"value": "5",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/frontend/list/category",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"frontend",
+								"list",
+								"category"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Chats",
+			"item": [
+				{
+					"name": "send message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// ✅ Basic response checks\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message confirms successful send\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Message sent successfully\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Check message object\r",
+									"pm.test(\"Message object is present\", () => {\r",
+									"    pm.expect(res.data.message).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"const msg = res.data.message;\r",
+									"\r",
+									"// ✅ Check message body\r",
+									"pm.test(\"Message body is valid\", () => {\r",
+									"    pm.expect(msg.body).to.be.a(\"string\").and.not.empty;\r",
+									"});\r",
+									"\r",
+									"// ✅ Save message ID\r",
+									"if (msg.id) {\r",
+									"    pm.collectionVariables.set(\"message_id\", msg.id);\r",
+									"    console.log(\"✅ Message ID saved:\", msg.id);\r",
+									"    pm.test(\"Message ID is a number\", () => {\r",
+									"        pm.expect(msg.id).to.be.a(\"number\");\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"// ✅ Save conversation ID\r",
+									"if (msg.conversation_id) {\r",
+									"    pm.collectionVariables.set(\"conversation_id\", msg.conversation_id);\r",
+									"    console.log(\"✅ Conversation ID saved:\", msg.conversation_id);\r",
+									"    pm.test(\"Conversation ID is a number\", () => {\r",
+									"        pm.expect(msg.conversation_id).to.be.a(\"number\");\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"// ✅ Validate sender (sendable)\r",
+									"if (msg.sendable) {\r",
+									"    const sender = msg.sendable;\r",
+									"\r",
+									"    pm.test(\"Sender info is valid\", () => {\r",
+									"        pm.expect(sender.name).to.be.a(\"string\").and.not.empty;\r",
+									"        pm.expect(sender.email).to.be.a(\"string\").and.include(\"@\");\r",
+									"    });\r",
+									"\r",
+									"    pm.collectionVariables.set(\"sender_email\", sender.email);\r",
+									"    pm.collectionVariables.set(\"sender_id\", sender.id);\r",
+									"    console.log(\"✅ Sender email saved:\", sender.email);\r",
+									"    console.log(\"✅ Sender ID saved:\", sender.id);\r",
+									"}\r",
+									"\r",
+									"// ✅ Validate created_at format\r",
+									"pm.test(\"Message has valid timestamp\", () => {\r",
+									"    pm.expect(msg.created_at).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}/);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "to_user_id",
+									"value": "30",
+									"type": "text"
+								},
+								{
+									"key": "message",
+									"value": "hlw admin test 123",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/chat/send",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chat",
+								"send"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data has conversations array\", () => {\r",
+									"    pm.expect(res.data).to.have.property(\"conversations\").that.is.an(\"array\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "to_user_id",
+									"value": "{{id}}",
+									"type": "text"
+								},
+								{
+									"key": "message",
+									"value": "hlw admin",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/chat/get",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chat",
+								"get"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Booking",
+			"item": [
+				{
+					"name": "store",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// ✅ Check for 422 status code\r",
+									"pm.test(\"Status code is 422\", () => {\r",
+									"    pm.response.to.have.status(422);\r",
+									"});\r",
+									"\r",
+									"// ✅ Status is false\r",
+									"pm.test(\"Status is false\", () => {\r",
+									"    pm.expect(res.status).to.be.false;\r",
+									"});\r",
+									"\r",
+									"// ✅ Message explains Stripe setup issue\r",
+									"pm.test(\"Error message mentions Stripe setup\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Stripe setup\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Data should be an empty array\r",
+									"pm.test(\"Data is an empty array\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"array\").that.is.empty;\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Parse the JSON string from collection variables\r",
+									"const startDateMap = JSON.parse(pm.collectionVariables.get(\"start_date_map\") || \"{}\");\r",
+									"\r",
+									"// Get the current tool_id saved in collection variable\r",
+									"const toolId = pm.collectionVariables.get(\"random_tool_id\");\r",
+									"\r",
+									"if (toolId && startDateMap[toolId]) {\r",
+									"    const startDate = startDateMap[toolId];\r",
+									"    \r",
+									"    // Save start_date as a variable accessible in the request (environment or local)\r",
+									"    pm.variables.set(\"start_date\", startDate); // for request scope variable\r",
+									"\r",
+									"    // OR save as environment variable if you prefer\r",
+									"    // pm.environment.set(\"start_date\", startDate);\r",
+									"\r",
+									"    console.log(`✅ Start date for tool ${toolId}: ${startDate}`);\r",
+									"} else {\r",
+									"    console.warn(`⚠️ No start_date found for tool id: ${toolId}`);\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tool_id",
+									"value": "{{random_tool_id}}",
+									"type": "text"
+								},
+								{
+									"key": "start_date",
+									"value": "{{start_date}}",
+									"type": "text"
+								},
+								{
+									"key": "end_date",
+									"value": "{{start_date}}",
+									"type": "text"
+								},
+								{
+									"key": "quantity",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/booking/store",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"booking",
+								"store"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// ✅ Status code is 200\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// ✅ Success is true\r",
+									"pm.test(\"Success flag is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"// ✅ Message confirms data fetch\r",
+									"pm.test(\"Message confirms data fetch\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Data Fetch successfully\");\r",
+									"});\r",
+									"\r",
+									"// ✅ Bookings data array exists\r",
+									"pm.test(\"Bookings data is present\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"object\");\r",
+									"    pm.expect(res.data.data).to.be.an(\"array\");\r",
+									"});\r",
+									"\r",
+									"// ✅ No bookings found\r",
+									"pm.test(\"Bookings list is empty\", () => {\r",
+									"    pm.expect(res.data.data.length).to.eql(0);\r",
+									"});\r",
+									"\r",
+									"// ✅ Pagination fields exist\r",
+									"pm.test(\"Pagination is valid\", () => {\r",
+									"    pm.expect(res.data).to.have.property(\"current_page\");\r",
+									"    pm.expect(res.data).to.have.property(\"total\");\r",
+									"    pm.expect(res.data).to.have.property(\"per_page\");\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/booking/get",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"booking",
+								"get"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Account",
+			"item": [
+				{
+					"name": "Create Account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// Status code and success flag\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success flag is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"// Check message\r",
+									"pm.test(\"Message indicates Stripe onboarding required\", () => {\r",
+									"    pm.expect(res.message).to.include(\"Stripe onboarding required\");\r",
+									"});\r",
+									"\r",
+									"// Check is_connected is false\r",
+									"pm.test(\"is_connected is false\", () => {\r",
+									"    pm.expect(res.is_connected).to.be.false;\r",
+									"});\r",
+									"\r",
+									"// Check onboarding_url exists and is a valid URL string\r",
+									"pm.test(\"onboarding_url exists and is a valid URL\", () => {\r",
+									"    pm.expect(res).to.have.property(\"onboarding_url\");\r",
+									"    pm.expect(res.onboarding_url).to.be.a(\"string\").and.not.empty;\r",
+									"    \r",
+									"    // Simple URL format check\r",
+									"    const urlPattern = /^https?:\\/\\/.+$/;\r",
+									"    pm.expect(res.onboarding_url).to.match(urlPattern);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/stripe/account",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stripe",
+								"account"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Withdraw request",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"// Test: Route should be found (no \"could not be found\" message)\r",
+									"pm.test(\"Route is found\", () => {\r",
+									"    pm.expect(pm.response.code).to.equal(200);  // or your expected success status code\r",
+									"    pm.expect(res.message).to.not.include(\"could not be found\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "amount",
+									"value": "100",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/account/withdraw/request",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"account",
+								"withdraw",
+								"request"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Earnning",
+			"item": [
+				{
+					"name": "My rent",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success flag is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is correct\", () => {\r",
+									"    pm.expect(res.message).to.eql(\"Data fetched successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data object contains expected keys\", () => {\r",
+									"    pm.expect(res.data).to.have.all.keys(\r",
+									"        \"total_earnings_last_6_months\",\r",
+									"        \"total_order_count_last_6_months\",\r",
+									"        \"total_commission_last_6_months\",\r",
+									"        \"bookings\"\r",
+									"    );\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Bookings is an array\", () => {\r",
+									"    pm.expect(res.data.bookings).to.be.an(\"array\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "{{email}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{signup_password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/earn/get",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"earn",
+								"get"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "total data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success flag is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is correct\", () => {\r",
+									"    pm.expect(res.message).to.eql(\"Dashboard data fetched successfully!\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data contains expected keys\", () => {\r",
+									"    pm.expect(res.data).to.have.all.keys(\r",
+									"        \"total_earnings\",\r",
+									"        \"total_tools\",\r",
+									"        \"total_renting\"\r",
+									"    );\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data values are numbers\", () => {\r",
+									"    pm.expect(res.data.total_earnings).to.be.a(\"number\");\r",
+									"    pm.expect(res.data.total_tools).to.be.a(\"number\");\r",
+									"    pm.expect(res.data.total_renting).to.be.a(\"number\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/earn/dashboard",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"earn",
+								"dashboard"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Profile",
+			"item": [
+				{
+					"name": "get all information",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is correct\", () => {\r",
+									"    pm.expect(res.message).to.eql(\"Data Fetch Successfully!\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data contains expected fields\", () => {\r",
+									"    pm.expect(res.data).to.have.all.keys(\"name\", \"avatar\", \"email\", \"phone\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Name is a non-empty string\", () => {\r",
+									"    pm.expect(res.data.name).to.be.a(\"string\").and.not.be.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Avatar is a valid URL\", () => {\r",
+									"    pm.expect(res.data.avatar).to.match(/^https?:\\/\\/.+/);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Email is a valid string and contains @\", () => {\r",
+									"    pm.expect(res.data.email).to.be.a(\"string\").and.include(\"@\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Phone is either null or a string\", () => {\r",
+									"    pm.expect(res.data.phone === null || typeof res.data.phone === \"string\").to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/user/get",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"get"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update information",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is correct\", () => {\r",
+									"    pm.expect(res.message).to.eql(\"User updated successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data contains user and phone fields\", () => {\r",
+									"    pm.expect(res.data).to.have.all.keys(\"user\", \"phone\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"User is a non-empty string\", () => {\r",
+									"    pm.expect(res.data.user).to.be.a(\"string\").and.not.be.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Phone is a non-empty string\", () => {\r",
+									"    pm.expect(res.data.phone).to.be.a(\"string\").and.not.be.empty;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "{{$randomFullName}}",
+									"type": "text"
+								},
+								{
+									"key": "phone",
+									"value": "{{$randomPhoneNumber}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/user/updateUserInfo",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"updateUserInfo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change password",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let randomnum = String(Math.floor(Math.random() * 100000000)).padStart(8,0);\r",
+									"console.log('random number',randomnum)\r",
+									"\r",
+									"pm.collectionVariables.set(\"new_password\", randomnum)\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is correct\", () => {\r",
+									"    pm.expect(res.message).to.eql(\"Password changed successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data is an empty array\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"array\").that.is.empty;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "old_password",
+									"value": "{{signup_password}}",
+									"type": "text"
+								},
+								{
+									"key": "new_password",
+									"value": "{{new_password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/user/change-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"change-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "profile picture",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is correct\", () => {\r",
+									"    pm.expect(res.message).to.eql(\"Avatar updated successfully.\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data contains avatar_url\", () => {\r",
+									"    pm.expect(res.data).to.have.property(\"avatar_url\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"avatar_url is a valid URL\", () => {\r",
+									"    pm.expect(res.data.avatar_url).to.match(/^https?:\\/\\/.+/);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "avatar",
+									"type": "file",
+									"src": "/C:/Users/USER/Downloads/download (1).png"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/user/avatar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"avatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success is true\", () => {\r",
+									"    pm.expect(res.success).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message confirms user deletion\", () => {\r",
+									"    pm.expect(res.message).to.include(\"User deleted successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Data is an empty array\", () => {\r",
+									"    pm.expect(res.data).to.be.an(\"array\").that.is.empty;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "{{email}}",
+									"type": "text"
+								},
+								{
+									"key": "phone",
+									"value": "{{new_password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/user/delete/user",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"delete",
+								"user"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://louish2.softvencefsd.xyz/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "signup_password",
+			"value": ""
+		},
+		{
+			"key": "otp",
+			"value": ""
+		},
+		{
+			"key": "email",
+			"value": ""
+		},
+		{
+			"key": "access_token",
+			"value": ""
+		},
+		{
+			"key": "attachment_url",
+			"value": ""
+		},
+		{
+			"key": "tool_id",
+			"value": ""
+		},
+		{
+			"key": "first_image_url",
+			"value": ""
+		},
+		{
+			"key": "category_id",
+			"value": ""
+		},
+		{
+			"key": "first_attachment_url",
+			"value": ""
+		},
+		{
+			"key": "tool_slug",
+			"value": ""
+		},
+		{
+			"key": "id",
+			"value": ""
+		},
+		{
+			"key": "new_password",
+			"value": ""
+		},
+		{
+			"key": "message_id",
+			"value": ""
+		},
+		{
+			"key": "conversation_id",
+			"value": ""
+		},
+		{
+			"key": "sender_email",
+			"value": ""
+		},
+		{
+			"key": "sender_id",
+			"value": ""
+		},
+		{
+			"key": "tool_ids",
+			"value": ""
+		},
+		{
+			"key": "availability_id",
+			"value": ""
+		},
+		{
+			"key": "tool_name",
+			"value": ""
+		},
+		{
+			"key": "tool_file_url",
+			"value": ""
+		},
+		{
+			"key": "start_date_map",
+			"value": ""
+		},
+		{
+			"key": "random_tool_id",
+			"value": ""
+		}
+	]
+>>>>>>> 39a81e2 (Removed secret)
+}

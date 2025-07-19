@@ -1,0 +1,41 @@
+name: 🧪 Postman Newman Tests with GitHub Pages Report
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v3
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: 📦 Install Newman & Reporter
+        run: |
+          npm install -g newman newman-reporter-htmlextra
+
+      - name: 🧪 Run Postman Collection and Generate HTML Report
+        run: |
+          newman run louish2 Final.postman_collection.json \
+            --environment 5922408-228c7edd-fc15-4f68-9665-a35d7df6945b \
+            --reporter-htmlextra \
+            --reporter-htmlextra-export ./public/newman-report.html \
+            --reporter-htmlextra-title "API Test Report" \
+            --reporter-htmlextra-showEnvironmentData true \
+            --reporter-htmlextra-showFolderDescription true
+
+      - name: 🚀 Deploy HTML Report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          publish_branch: gh-pages
+          destination_dir: newman-report    
+          keep_files: true
