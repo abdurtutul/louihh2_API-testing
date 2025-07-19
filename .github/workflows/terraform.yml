@@ -1,0 +1,42 @@
+name: 🧪 Run Postman Collection with Newman
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  postman-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v3
+
+      - name: ⬢ Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: 📦 Install Newman
+        run: npm install -g newman
+
+      - name: ▶️ Run Newman Collection
+        run: |
+          newman run collections/louish2-final.postman_collection.json \
+            --reporters cli,html \
+            --reporter-html-export newman-report.html
+
+      - name: 📤 Upload HTML Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: newman-html-report
+          path: newman-report.html
+      - name: 📦 Install GitHub Pages actions
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./newman-report.html     
+  
+        
