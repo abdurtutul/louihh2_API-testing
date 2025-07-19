@@ -1,41 +1,42 @@
-name: 🧪 Postman Newman Tests with GitHub Pages Report
+name: 🧪 Run Postman Collection with Newman
 
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  test-and-deploy:
+  postman-tests:
     runs-on: ubuntu-latest
 
     steps:
-      - name: ⬇️ Checkout code
+      - name: ⬇️ Checkout repository
         uses: actions/checkout@v3
 
-      - name: 🟢 Setup Node.js
+      - name: ⬢ Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: '18'
 
-      - name: 📦 Install Newman & Reporter
+      - name: 📦 Install Newman
+        run: npm install -g newman
+
+      - name: ▶️ Run Newman Collection
         run: |
-          npm install -g newman newman-reporter-htmlextra
+          newman run collections/louish2-final.postman_collection.json \
+            --reporters cli,html \
+            --reporter-html-export newman-report.html
 
-      - name: 🧪 Run Postman Collection and Generate HTML Report
-        run: |
-          newman run louish2 Final.postman_collection.json \
-            --environment 5922408-228c7edd-fc15-4f68-9665-a35d7df6945b \
-            --reporter-htmlextra \
-            --reporter-htmlextra-export ./public/newman-report.html \
-            --reporter-htmlextra-title "API Test Report" \
-            --reporter-htmlextra-showEnvironmentData true \
-            --reporter-htmlextra-showFolderDescription true
-
-      - name: 🚀 Deploy HTML Report to GitHub Pages
+      - name: 📤 Upload HTML Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: newman-html-report
+          path: newman-report.html
+      - name: 📦 Install GitHub Pages actions
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
-          publish_branch: gh-pages
-          destination_dir: newman-report    
-          keep_files: true
+          publish_dir: ./newman-report.html     
+  
+        
