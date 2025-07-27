@@ -87,7 +87,8 @@ newman run louish2 Final.postman_collection.json -r htmlextra --reporter-htmlext
   - `profile picture`  
   - `delete account`
  ---
- ## 📊 Sample Report Screenshot
+## 📊 Sample Report Screenshot
 
-![Test Report Screenshot](screenshots/report-summary.png)
+![Test Report Screenshot](https://raw.githubusercontent.com/abdurtutul/louihh2_API-testing/main/screenshots/Screenshot%202025-07-27%20124313.png)
+
 
