@@ -92,6 +92,17 @@ newman run louish2 Final.postman_collection.json -r htmlextra --reporter-htmlext
 | Summary View                                 | Failed Test Detail View                            |
 |---------------------------------------------|----------------------------------------------------|
 | ![Summary](https://raw.githubusercontent.com/abdurtutul/louihh2_API-testing/main/screenshots/Screenshot%202025-07-27%20124313.png) | ![Failed Test](https://raw.githubusercontent.com/abdurtutul/louihh2_API-testing/main/screenshots/Screenshot%202025-07-27%20124445.png) |
+---
+## 🔗 Postman Cloud Documentation
 
+📎 [View Live Postman Collection Documentation](https://documenter.getpostman.com/view/22742638/2sB3B7MYxa)
+
+---
+
+## 👨‍💻 Author
+
+**AB Rahman**  
+_Manual + Automation QA Enthusiast_  
+📧 Email: [abdurtutul6@gmail.com](mailto:abdurtutul6@gmail.com)
 
 
